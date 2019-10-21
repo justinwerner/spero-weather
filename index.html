@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Vibes&display=swap" rel="stylesheet">
+  </head>
+
+  <body>
+    <div id="elm-app"></div>
+
+    <script src="elm.js"></script>
+    <script>
+      var app = Elm.Home.init({
+        node: document.getElementById("elm-app")
+      });
+    </script>
+  </body>
+</html>
