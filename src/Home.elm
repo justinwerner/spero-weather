@@ -1,9 +1,11 @@
 module Home exposing (main)
 
 import Browser
+import Browser.Events
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
+import Json.Decode as Decode
 import Http
 
 
@@ -12,19 +14,37 @@ import Http
 
 
 main =
-  Browser.sandbox { init = init, update = update, view = view }
+  Browser.element
+    { init = init
+    , update = update
+    , subscriptions = subscriptions
+    , view = view
+    }
 
 
 
 -- MODEL
 
+type alias Search =
+  { city : String }
 
-type alias Model
-  = { city : String }
+type alias Weather =
+  { temp : Float }
+
+type Model
+  = Landing Search
+  | Loading
+  | Success Weather
+  | Failure
 
 
-init : Model
-init = Model ""
+init : () -> (Model, Cmd Msg)
+init _ =
+  let
+    newSearch =
+      Search ""
+  in
+    (Landing newSearch, Cmd.none)
 
 
 
@@ -33,14 +53,38 @@ init = Model ""
 
 type Msg
   = City String
+  | RetrieveWeather
+  | GotWeather (Result Http.Error Weather)
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
     City city ->
-      { model | city = city }
+      let
+        cityToSearch =
+          Search city
+      in
+        (Landing cityToSearch, Cmd.none)
+    RetrieveWeather ->
+      ( Loading
+        , Http.get
+            { url = "https://elm-lang.org/assets/public-opinion.txt"
+            , expect = Http.expectJson GotWeather weatherDecoder
+            }
+      )
+    GotWeather result ->
+      case result of
+        Ok weather ->
+          (Success weather, Cmd.none)
 
+        Err _ ->
+          (Failure, Cmd.none)
+
+weatherDecoder : Decode.Decoder Weather
+weatherDecoder =
+  Decode.map Weather
+    (Decode.field "temp" Decode.float)
 
 
 -- SUBSCRIPTIONS
@@ -48,8 +92,20 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  Sub.none
+  Browser.Events.onKeyDown keyDecoder
 
+keyDecoder : Decode.Decoder Msg
+keyDecoder =
+    Decode.map toKey (Decode.field "key" Decode.string)
+
+toKey : String -> Msg
+toKey string =
+  case string of
+    "Enter" ->
+      RetrieveWeather
+
+    _ ->
+      City ""
 
 
 -- VIEW
@@ -57,11 +113,22 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-  div [ class "container mx-auto flex flex-col h-screen justify-center items-center" ]
-    [ h1 [ style "font-family" "Vibes, cursive", style "color" "#475B63", class "text-4xl my-10"] [text "Spero Weather" ],
-    input [ class "w-1/2 appearance-none bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-            , placeholder "city"
-            , value model.city
-            , onInput City ] [],
-    img [ src "./assets/svg/undraw_location_search_bqps.svg", class "w-1/3 h-1/3 mt-20", style "opacity" "0.65" ] []
-    ]
+  case model of
+    Landing search ->
+      div [ class "container mx-auto flex flex-col h-screen justify-center items-center" ]
+        [ h1 [ style "font-family" "Vibes, cursive", style "color" "#475B63", class "text-4xl my-10"] [text "Spero Weather" ],
+        input [ class "w-1/2 appearance-none bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                , placeholder "city"
+                , value search.city
+                , onInput City ] [],
+        img [ src "./assets/svg/undraw_location_search_bqps.svg", class "w-1/3 h-1/3 mt-20", style "opacity" "0.65" ] []
+        ]
+
+    Loading ->
+      div [] [text "I am loading..."]
+
+    Success weather ->
+      div [] [text "Success"]
+
+    Failure ->
+      div [] [text "Houston..."]
