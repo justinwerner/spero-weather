@@ -5,6 +5,7 @@ import Browser.Events
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
+import Html.Events.Extra exposing (onEnter)
 import Json.Decode as Decode
 import Http
 
@@ -55,6 +56,7 @@ type Msg
   = City String
   | RetrieveWeather
   | GotWeather (Result Http.Error Weather)
+  | Reset
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -80,6 +82,12 @@ update msg model =
 
         Err _ ->
           (Failure, Cmd.none)
+    Reset ->
+      let
+        resetSearch =
+          Search ""
+      in
+        (Landing resetSearch, Cmd.none)
 
 weatherDecoder : Decode.Decoder Weather
 weatherDecoder =
@@ -92,20 +100,7 @@ weatherDecoder =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  Browser.Events.onKeyDown keyDecoder
-
-keyDecoder : Decode.Decoder Msg
-keyDecoder =
-    Decode.map toKey (Decode.field "key" Decode.string)
-
-toKey : String -> Msg
-toKey string =
-  case string of
-    "Enter" ->
-      RetrieveWeather
-
-    _ ->
-      City ""
+  Sub.none
 
 
 -- VIEW
@@ -120,7 +115,8 @@ view model =
         input [ class "w-1/2 appearance-none bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                 , placeholder "city"
                 , value search.city
-                , onInput City ] [],
+                , onInput City
+                , onEnter RetrieveWeather ] [],
         img [ src "./assets/svg/undraw_location_search_bqps.svg", class "w-1/3 h-1/3 mt-20", style "opacity" "0.65" ] []
         ]
 
