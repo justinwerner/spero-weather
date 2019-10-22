@@ -2,6 +2,7 @@ module Home exposing (main)
 
 import Browser
 import Browser.Events
+import Debug exposing (toString)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
@@ -31,15 +32,54 @@ type alias Search =
     { city : String }
 
 
+type alias Wind =
+    { speed : Float }
+
+
+type alias Condition =
+    { rain : Maybe Float
+    , snow : Maybe Float
+    , clouds : Clouds
+    }
+
+
+type alias Clouds =
+    { all : Maybe Float }
+
+
+type alias Description =
+    { short : String
+    , long : String
+    }
+
+
+type alias Temperatures =
+    { now : Float
+    , min : Float
+    , max : Float
+    }
+
+
+type alias MiscData =
+    { humidity : Float
+    , pressure : Float
+    }
+
+
 type alias Weather =
-    { temp : Float }
+    { temperatures : Temperatures
+    , other : MiscData
+    , wind : Wind
+    , description : Description
+    , condition : Condition
+    }
 
 
 type Model
     = Landing Search
     | Loading
     | Success Weather
-    | Failure
+    | Failure String
 
 
 init : () -> ( Model, Cmd Msg )
@@ -57,7 +97,7 @@ init _ =
 
 type Msg
     = City String
-    | RetrieveWeather
+    | RetrieveWeather String
     | GotWeather (Result Http.Error Weather)
     | Reset
 
@@ -72,10 +112,10 @@ update msg model =
             in
             ( Landing cityToSearch, Cmd.none )
 
-        RetrieveWeather ->
+        RetrieveWeather city ->
             ( Loading
             , Http.get
-                { url = "https://elm-lang.org/assets/public-opinion.txt"
+                { url = "http://api.openweathermap.org/data/2.5/find?q=" ++ city ++ "&units=imperial&type=accurate&APPID=7ab827fff3461690618eccf4312e5268"
                 , expect = Http.expectJson GotWeather weatherDecoder
                 }
             )
@@ -85,8 +125,8 @@ update msg model =
                 Ok weather ->
                     ( Success weather, Cmd.none )
 
-                Err _ ->
-                    ( Failure, Cmd.none )
+                Err err ->
+                    ( Failure (toString err), Cmd.none )
 
         Reset ->
             let
@@ -98,8 +138,54 @@ update msg model =
 
 weatherDecoder : Decode.Decoder Weather
 weatherDecoder =
-    Decode.map Weather
-        (Decode.field "temp" Decode.float)
+    Decode.map5 Weather
+        (Decode.at [ "list" ] (Decode.index 0 temperatureDecoder))
+        (Decode.at [ "list" ] (Decode.index 0 miscDataDecoder))
+        (Decode.at [ "list" ] (Decode.index 0 windDecoder))
+        (Decode.at [ "list" ] (Decode.index 0 descriptionDecoder))
+        (Decode.at [ "list" ] (Decode.index 0 conditionDecoder))
+
+
+temperatureDecoder : Decode.Decoder Temperatures
+temperatureDecoder =
+    Decode.map3 Temperatures
+        (Decode.at [ "main", "temp" ] Decode.float)
+        (Decode.at [ "main", "temp_min" ] Decode.float)
+        (Decode.at [ "main", "temp_max" ] Decode.float)
+
+
+miscDataDecoder : Decode.Decoder MiscData
+miscDataDecoder =
+    Decode.map2 MiscData
+        (Decode.at [ "main", "humidity" ] Decode.float)
+        (Decode.at [ "main", "pressure" ] Decode.float)
+
+
+windDecoder : Decode.Decoder Wind
+windDecoder =
+    Decode.map Wind
+        (Decode.at [ "wind", "speed" ] Decode.float)
+
+
+descriptionDecoder : Decode.Decoder Description
+descriptionDecoder =
+    Decode.map2 Description
+        (Decode.at [ "weather" ] (Decode.index 0 (Decode.at [ "main" ] Decode.string)))
+        (Decode.at [ "weather" ] (Decode.index 0 (Decode.at [ "description" ] Decode.string)))
+
+
+conditionDecoder : Decode.Decoder Condition
+conditionDecoder =
+    Decode.map3 Condition
+        (Decode.field "rain" (Decode.nullable Decode.float))
+        (Decode.field "snow" (Decode.nullable Decode.float))
+        (Decode.field "clouds" cloudDecoder)
+
+
+cloudDecoder : Decode.Decoder Clouds
+cloudDecoder =
+    Decode.map Clouds
+        (Decode.field "all" (Decode.nullable Decode.float))
 
 
 
@@ -126,7 +212,7 @@ view model =
                     , placeholder "city"
                     , value search.city
                     , onInput City
-                    , onEnter RetrieveWeather
+                    , onEnter (RetrieveWeather search.city)
                     ]
                     []
                 , img [ src "./assets/svg/undraw_location_search_bqps.svg", class "w-1/3 h-1/3 mt-20", style "opacity" "0.65" ] []
@@ -136,7 +222,13 @@ view model =
             div [] [ text "I am loading..." ]
 
         Success weather ->
-            div [] [ text "Success" ]
+            div [ class "container mx-auto flex flex-col h-screen justify-center items-center" ]
+                [ h1 [ style "font-family" "Vibes, cursive", style "color" "#475B63", class "text-4xl my-10" ] [ text "Spero Weather" ]
+                , section
+                    []
+                    [ text (toString weather) ]
+                , img [ src "./assets/svg/undraw_location_search_bqps.svg", class "w-1/3 h-1/3 mt-20", style "opacity" "0.65" ] []
+                ]
 
-        Failure ->
-            div [] [ text "Houston..." ]
+        Failure err ->
+            div [] [ text err ]

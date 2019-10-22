@@ -4979,7 +4979,9 @@ var elm$core$Platform$Sub$none = elm$core$Platform$Sub$batch(_List_Nil);
 var author$project$Home$subscriptions = function (model) {
 	return elm$core$Platform$Sub$none;
 };
-var author$project$Home$Failure = {$: 'Failure'};
+var author$project$Home$Failure = function (a) {
+	return {$: 'Failure', a: a};
+};
 var author$project$Home$GotWeather = function (a) {
 	return {$: 'GotWeather', a: a};
 };
@@ -4987,16 +4989,223 @@ var author$project$Home$Loading = {$: 'Loading'};
 var author$project$Home$Success = function (a) {
 	return {$: 'Success', a: a};
 };
-var author$project$Home$Weather = function (temp) {
-	return {temp: temp};
+var author$project$Home$Weather = F5(
+	function (temperatures, other, wind, description, condition) {
+		return {condition: condition, description: description, other: other, temperatures: temperatures, wind: wind};
+	});
+var author$project$Home$Condition = F3(
+	function (rain, snow, clouds) {
+		return {clouds: clouds, rain: rain, snow: snow};
+	});
+var author$project$Home$Clouds = function (all) {
+	return {all: all};
 };
 var elm$json$Json$Decode$field = _Json_decodeField;
 var elm$json$Json$Decode$float = _Json_decodeFloat;
 var elm$json$Json$Decode$map = _Json_map1;
-var author$project$Home$weatherDecoder = A2(
+var elm$json$Json$Decode$null = _Json_decodeNull;
+var elm$json$Json$Decode$oneOf = _Json_oneOf;
+var elm$json$Json$Decode$nullable = function (decoder) {
+	return elm$json$Json$Decode$oneOf(
+		_List_fromArray(
+			[
+				elm$json$Json$Decode$null(elm$core$Maybe$Nothing),
+				A2(elm$json$Json$Decode$map, elm$core$Maybe$Just, decoder)
+			]));
+};
+var author$project$Home$cloudDecoder = A2(
 	elm$json$Json$Decode$map,
+	author$project$Home$Clouds,
+	A2(
+		elm$json$Json$Decode$field,
+		'all',
+		elm$json$Json$Decode$nullable(elm$json$Json$Decode$float)));
+var elm$json$Json$Decode$map3 = _Json_map3;
+var author$project$Home$conditionDecoder = A4(
+	elm$json$Json$Decode$map3,
+	author$project$Home$Condition,
+	A2(
+		elm$json$Json$Decode$field,
+		'rain',
+		elm$json$Json$Decode$nullable(elm$json$Json$Decode$float)),
+	A2(
+		elm$json$Json$Decode$field,
+		'snow',
+		elm$json$Json$Decode$nullable(elm$json$Json$Decode$float)),
+	A2(elm$json$Json$Decode$field, 'clouds', author$project$Home$cloudDecoder));
+var author$project$Home$Description = F2(
+	function (_short, _long) {
+		return {_long: _long, _short: _short};
+	});
+var elm$core$List$foldrHelper = F4(
+	function (fn, acc, ctr, ls) {
+		if (!ls.b) {
+			return acc;
+		} else {
+			var a = ls.a;
+			var r1 = ls.b;
+			if (!r1.b) {
+				return A2(fn, a, acc);
+			} else {
+				var b = r1.a;
+				var r2 = r1.b;
+				if (!r2.b) {
+					return A2(
+						fn,
+						a,
+						A2(fn, b, acc));
+				} else {
+					var c = r2.a;
+					var r3 = r2.b;
+					if (!r3.b) {
+						return A2(
+							fn,
+							a,
+							A2(
+								fn,
+								b,
+								A2(fn, c, acc)));
+					} else {
+						var d = r3.a;
+						var r4 = r3.b;
+						var res = (ctr > 500) ? A3(
+							elm$core$List$foldl,
+							fn,
+							acc,
+							elm$core$List$reverse(r4)) : A4(elm$core$List$foldrHelper, fn, acc, ctr + 1, r4);
+						return A2(
+							fn,
+							a,
+							A2(
+								fn,
+								b,
+								A2(
+									fn,
+									c,
+									A2(fn, d, res))));
+					}
+				}
+			}
+		}
+	});
+var elm$core$List$foldr = F3(
+	function (fn, acc, ls) {
+		return A4(elm$core$List$foldrHelper, fn, acc, 0, ls);
+	});
+var elm$json$Json$Decode$at = F2(
+	function (fields, decoder) {
+		return A3(elm$core$List$foldr, elm$json$Json$Decode$field, decoder, fields);
+	});
+var elm$json$Json$Decode$index = _Json_decodeIndex;
+var elm$json$Json$Decode$map2 = _Json_map2;
+var elm$json$Json$Decode$string = _Json_decodeString;
+var author$project$Home$descriptionDecoder = A3(
+	elm$json$Json$Decode$map2,
+	author$project$Home$Description,
+	A2(
+		elm$json$Json$Decode$at,
+		_List_fromArray(
+			['weather']),
+		A2(
+			elm$json$Json$Decode$index,
+			0,
+			A2(
+				elm$json$Json$Decode$at,
+				_List_fromArray(
+					['main']),
+				elm$json$Json$Decode$string))),
+	A2(
+		elm$json$Json$Decode$at,
+		_List_fromArray(
+			['weather']),
+		A2(
+			elm$json$Json$Decode$index,
+			0,
+			A2(
+				elm$json$Json$Decode$at,
+				_List_fromArray(
+					['description']),
+				elm$json$Json$Decode$string))));
+var author$project$Home$MiscData = F2(
+	function (humidity, pressure) {
+		return {humidity: humidity, pressure: pressure};
+	});
+var author$project$Home$miscDataDecoder = A3(
+	elm$json$Json$Decode$map2,
+	author$project$Home$MiscData,
+	A2(
+		elm$json$Json$Decode$at,
+		_List_fromArray(
+			['main', 'humidity']),
+		elm$json$Json$Decode$float),
+	A2(
+		elm$json$Json$Decode$at,
+		_List_fromArray(
+			['main', 'pressure']),
+		elm$json$Json$Decode$float));
+var author$project$Home$Temperatures = F3(
+	function (now, min, max) {
+		return {max: max, min: min, now: now};
+	});
+var author$project$Home$temperatureDecoder = A4(
+	elm$json$Json$Decode$map3,
+	author$project$Home$Temperatures,
+	A2(
+		elm$json$Json$Decode$at,
+		_List_fromArray(
+			['main', 'temp']),
+		elm$json$Json$Decode$float),
+	A2(
+		elm$json$Json$Decode$at,
+		_List_fromArray(
+			['main', 'temp_min']),
+		elm$json$Json$Decode$float),
+	A2(
+		elm$json$Json$Decode$at,
+		_List_fromArray(
+			['main', 'temp_max']),
+		elm$json$Json$Decode$float));
+var author$project$Home$Wind = function (speed) {
+	return {speed: speed};
+};
+var author$project$Home$windDecoder = A2(
+	elm$json$Json$Decode$map,
+	author$project$Home$Wind,
+	A2(
+		elm$json$Json$Decode$at,
+		_List_fromArray(
+			['wind', 'speed']),
+		elm$json$Json$Decode$float));
+var elm$json$Json$Decode$map5 = _Json_map5;
+var author$project$Home$weatherDecoder = A6(
+	elm$json$Json$Decode$map5,
 	author$project$Home$Weather,
-	A2(elm$json$Json$Decode$field, 'temp', elm$json$Json$Decode$float));
+	A2(
+		elm$json$Json$Decode$at,
+		_List_fromArray(
+			['list']),
+		A2(elm$json$Json$Decode$index, 0, author$project$Home$temperatureDecoder)),
+	A2(
+		elm$json$Json$Decode$at,
+		_List_fromArray(
+			['list']),
+		A2(elm$json$Json$Decode$index, 0, author$project$Home$miscDataDecoder)),
+	A2(
+		elm$json$Json$Decode$at,
+		_List_fromArray(
+			['list']),
+		A2(elm$json$Json$Decode$index, 0, author$project$Home$windDecoder)),
+	A2(
+		elm$json$Json$Decode$at,
+		_List_fromArray(
+			['list']),
+		A2(elm$json$Json$Decode$index, 0, author$project$Home$descriptionDecoder)),
+	A2(
+		elm$json$Json$Decode$at,
+		_List_fromArray(
+			['list']),
+		A2(elm$json$Json$Decode$index, 0, author$project$Home$conditionDecoder)));
+var elm$core$Debug$toString = _Debug_toString;
 var elm$core$Result$mapError = F2(
 	function (f, result) {
 		if (result.$ === 'Ok') {
@@ -5710,61 +5919,6 @@ var elm$http$Http$onEffects = F4(
 			},
 			A3(elm$http$Http$updateReqs, router, cmds, state.reqs));
 	});
-var elm$core$List$foldrHelper = F4(
-	function (fn, acc, ctr, ls) {
-		if (!ls.b) {
-			return acc;
-		} else {
-			var a = ls.a;
-			var r1 = ls.b;
-			if (!r1.b) {
-				return A2(fn, a, acc);
-			} else {
-				var b = r1.a;
-				var r2 = r1.b;
-				if (!r2.b) {
-					return A2(
-						fn,
-						a,
-						A2(fn, b, acc));
-				} else {
-					var c = r2.a;
-					var r3 = r2.b;
-					if (!r3.b) {
-						return A2(
-							fn,
-							a,
-							A2(
-								fn,
-								b,
-								A2(fn, c, acc)));
-					} else {
-						var d = r3.a;
-						var r4 = r3.b;
-						var res = (ctr > 500) ? A3(
-							elm$core$List$foldl,
-							fn,
-							acc,
-							elm$core$List$reverse(r4)) : A4(elm$core$List$foldrHelper, fn, acc, ctr + 1, r4);
-						return A2(
-							fn,
-							a,
-							A2(
-								fn,
-								b,
-								A2(
-									fn,
-									c,
-									A2(fn, d, res))));
-					}
-				}
-			}
-		}
-	});
-var elm$core$List$foldr = F3(
-	function (fn, acc, ls) {
-		return A4(elm$core$List$foldrHelper, fn, acc, 0, ls);
-	});
 var elm$core$List$maybeCons = F3(
 	function (f, mx, xs) {
 		var _n0 = f(mx);
@@ -5888,12 +6042,13 @@ var author$project$Home$update = F2(
 					author$project$Home$Landing(cityToSearch),
 					elm$core$Platform$Cmd$none);
 			case 'RetrieveWeather':
+				var city = msg.a;
 				return _Utils_Tuple2(
 					author$project$Home$Loading,
 					elm$http$Http$get(
 						{
 							expect: A2(elm$http$Http$expectJson, author$project$Home$GotWeather, author$project$Home$weatherDecoder),
-							url: 'https://elm-lang.org/assets/public-opinion.txt'
+							url: 'http://api.openweathermap.org/data/2.5/find?q=' + (city + '&units=imperial&type=accurate&APPID=7ab827fff3461690618eccf4312e5268')
 						}));
 			case 'GotWeather':
 				var result = msg.a;
@@ -5903,7 +6058,11 @@ var author$project$Home$update = F2(
 						author$project$Home$Success(weather),
 						elm$core$Platform$Cmd$none);
 				} else {
-					return _Utils_Tuple2(author$project$Home$Failure, elm$core$Platform$Cmd$none);
+					var err = result.a;
+					return _Utils_Tuple2(
+						author$project$Home$Failure(
+							elm$core$Debug$toString(err)),
+						elm$core$Platform$Cmd$none);
 				}
 			default:
 				var resetSearch = author$project$Home$Search('');
@@ -5915,8 +6074,9 @@ var author$project$Home$update = F2(
 var author$project$Home$City = function (a) {
 	return {$: 'City', a: a};
 };
-var author$project$Home$RetrieveWeather = {$: 'RetrieveWeather'};
-var elm$json$Json$Decode$map2 = _Json_map2;
+var author$project$Home$RetrieveWeather = function (a) {
+	return {$: 'RetrieveWeather', a: a};
+};
 var elm$json$Json$Decode$succeed = _Json_succeed;
 var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 	switch (handler.$) {
@@ -5934,6 +6094,7 @@ var elm$html$Html$div = _VirtualDom_node('div');
 var elm$html$Html$h1 = _VirtualDom_node('h1');
 var elm$html$Html$img = _VirtualDom_node('img');
 var elm$html$Html$input = _VirtualDom_node('input');
+var elm$html$Html$section = _VirtualDom_node('section');
 var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
 var elm$json$Json$Encode$string = _Json_wrap;
@@ -5969,11 +6130,6 @@ var elm$html$Html$Events$stopPropagationOn = F2(
 			event,
 			elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
 	});
-var elm$json$Json$Decode$at = F2(
-	function (fields, decoder) {
-		return A3(elm$core$List$foldr, elm$json$Json$Decode$field, decoder, fields);
-	});
-var elm$json$Json$Decode$string = _Json_decodeString;
 var elm$html$Html$Events$targetValue = A2(
 	elm$json$Json$Decode$at,
 	_List_fromArray(
@@ -6046,7 +6202,8 @@ var author$project$Home$view = function (model) {
 								elm$html$Html$Attributes$placeholder('city'),
 								elm$html$Html$Attributes$value(search.city),
 								elm$html$Html$Events$onInput(author$project$Home$City),
-								elm_community$html_extra$Html$Events$Extra$onEnter(author$project$Home$RetrieveWeather)
+								elm_community$html_extra$Html$Events$Extra$onEnter(
+								author$project$Home$RetrieveWeather(search.city))
 							]),
 						_List_Nil),
 						A2(
@@ -6071,18 +6228,50 @@ var author$project$Home$view = function (model) {
 			var weather = model.a;
 			return A2(
 				elm$html$Html$div,
-				_List_Nil,
 				_List_fromArray(
 					[
-						elm$html$Html$text('Success')
+						elm$html$Html$Attributes$class('container mx-auto flex flex-col h-screen justify-center items-center')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						elm$html$Html$h1,
+						_List_fromArray(
+							[
+								A2(elm$html$Html$Attributes$style, 'font-family', 'Vibes, cursive'),
+								A2(elm$html$Html$Attributes$style, 'color', '#475B63'),
+								elm$html$Html$Attributes$class('text-4xl my-10')
+							]),
+						_List_fromArray(
+							[
+								elm$html$Html$text('Spero Weather')
+							])),
+						A2(
+						elm$html$Html$section,
+						_List_Nil,
+						_List_fromArray(
+							[
+								elm$html$Html$text(
+								elm$core$Debug$toString(weather))
+							])),
+						A2(
+						elm$html$Html$img,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$src('./assets/svg/undraw_location_search_bqps.svg'),
+								elm$html$Html$Attributes$class('w-1/3 h-1/3 mt-20'),
+								A2(elm$html$Html$Attributes$style, 'opacity', '0.65')
+							]),
+						_List_Nil)
 					]));
 		default:
+			var err = model.a;
 			return A2(
 				elm$html$Html$div,
 				_List_Nil,
 				_List_fromArray(
 					[
-						elm$html$Html$text('Houston...')
+						elm$html$Html$text(err)
 					]));
 	}
 };
