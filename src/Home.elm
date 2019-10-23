@@ -9,6 +9,7 @@ import Html.Events exposing (onInput)
 import Html.Events.Extra exposing (onEnter)
 import Http
 import Json.Decode as Decode
+import Loading exposing (LoaderType(..), defaultConfig, render)
 
 
 
@@ -122,8 +123,8 @@ update msg model =
 
         GotWeather result ->
             case result of
-                Ok weather ->
-                    ( Success weather, Cmd.none )
+                Ok decodedWeather ->
+                    ( Success decodedWeather, Cmd.none )
 
                 Err err ->
                     ( Failure (toString err), Cmd.none )
@@ -205,30 +206,86 @@ view : Model -> Html Msg
 view model =
     case model of
         Landing search ->
-            div [ class "container mx-auto flex flex-col h-screen justify-center items-center" ]
-                [ h1 [ style "font-family" "Vibes, cursive", style "color" "#475B63", class "text-4xl my-10" ] [ text "Spero Weather" ]
-                , input
-                    [ class "w-1/2 appearance-none bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                    , placeholder "city"
-                    , value search.city
-                    , onInput City
-                    , onEnter (RetrieveWeather search.city)
-                    ]
-                    []
-                , img [ src "./assets/svg/undraw_location_search_bqps.svg", class "w-1/3 h-1/3 mt-20", style "opacity" "0.65" ] []
-                ]
+            page (inputSection search) "./assets/svg/undraw_location_search_bqps.svg" "0.65"
 
         Loading ->
-            div [] [ text "I am loading..." ]
+            page loading "./assets/svg/undraw_unicorn_dp2f.svg" "1.0"
 
-        Success weather ->
-            div [ class "container mx-auto flex flex-col h-screen justify-center items-center" ]
-                [ h1 [ style "font-family" "Vibes, cursive", style "color" "#475B63", class "text-4xl my-10" ] [ text "Spero Weather" ]
-                , section
-                    []
-                    [ text (toString weather) ]
-                , img [ src "./assets/svg/undraw_location_search_bqps.svg", class "w-1/3 h-1/3 mt-20", style "opacity" "0.65" ] []
-                ]
+        Success weatherData ->
+            page (weather weatherData) "./assets/svg/undraw_nature_fun_n9lv.svg" "1.0"
 
         Failure err ->
-            div [] [ text err ]
+            page (failure err) "./assets/svg/undraw_server_down_s4lk.svg" "1.0"
+
+
+page : Html Msg -> String -> String -> Html Msg
+page innerHtml image opacity =
+    div [ class "container mx-auto flex flex-col h-screen justify-center items-center" ]
+        [ h1 [ style "font-family" "Vibes, cursive", style "color" "#475B63", class "text-4xl my-10" ] [ text "Spero Weather" ]
+        , innerHtml
+        , img [ src image, class "w-1/3 h-1/3 mt-20", style "opacity" opacity ] []
+        ]
+
+
+inputSection : Search -> Html Msg
+inputSection search =
+    input
+        [ class "w-1/2 appearance-none bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+        , placeholder "city"
+        , value search.city
+        , onInput City
+        , onEnter (RetrieveWeather search.city)
+        ]
+        []
+
+
+weather : Weather -> Html Msg
+weather weatherData =
+    let
+        newIcon =
+            "sun"
+    in
+    section
+        []
+        [ div [ class "flex flex-row items-center justify-center" ]
+            [ icon newIcon
+            , span [ class "text-4xl ml-10", style "color" "#475B63" ] [ text weatherData.description.short ]
+            ]
+        , div [ style "color" "#475B63", class "text-5xl text-center" ] [ text (toString weatherData.temperatures.now), text (" " ++ String.fromChar (Char.fromCode 176) ++ "F") ]
+        , div [ class "text-center text-xl", style "color" "#475B63" ] [ text weatherData.description.long ]
+        , text (toString weatherData)
+        ]
+
+
+icon : String -> Html Msg
+icon iconName =
+    let
+        iconPath =
+            "./assets/svg/" ++ iconName ++ ".svg"
+    in
+    img [ style "color" "#475B63", style "height" "100px", style "width" "100px", src iconPath ] []
+
+
+iconCenter : String -> Html Msg
+iconCenter iconCenterName =
+    let
+        iconPath =
+            "./assets/svg/" ++ iconCenterName ++ ".svg"
+    in
+    img [ style "color" "#475B63", style "height" "100px", style "width" "100px", class "mx-auto", src iconPath ] []
+
+
+loading : Html Msg
+loading =
+    div []
+        [ Loading.render
+            Sonar
+            { defaultConfig | color = "#E09F3E" }
+            Loading.On
+        ]
+
+
+failure : String -> Html Msg
+failure err =
+    div [ style "color" "#DA2C38", class "text-xl my-5" ]
+        [ text err ]
