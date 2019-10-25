@@ -116,7 +116,7 @@ update msg model =
         RetrieveWeather city ->
             ( Loading
             , Http.get
-                { url = "http://api.openweathermap.org/data/2.5/find?q=" ++ city ++ "&units=imperial&type=accurate&APPID=7ab827fff3461690618eccf4312e5268"
+                { url = "https://api.openweathermap.org/data/2.5/find?q=" ++ city ++ "&units=imperial&type=accurate&APPID=7ab827fff3461690618eccf4312e5268"
                 , expect = Http.expectJson GotWeather weatherDecoder
                 }
             )
