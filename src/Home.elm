@@ -243,7 +243,25 @@ weather : Weather -> Html Msg
 weather weatherData =
     let
         newIcon =
-            "sun"
+            case weatherData.description.short of
+                "Clouds" ->
+                    "cloud"
+
+                _ ->
+                    "sun"
+
+        windMessage =
+            if weatherData.wind.speed < 10 then
+                "meh"
+
+            else if List.member (round weatherData.wind.speed) (List.range 10 30) then
+                "interesting"
+
+            else if List.member (round weatherData.wind.speed) (List.range 30 50) then
+                "wow!"
+
+            else
+                "Run For Cover!"
     in
     section
         []
@@ -251,9 +269,27 @@ weather weatherData =
             [ icon newIcon
             , span [ class "text-4xl ml-10", style "color" "#475B63" ] [ text weatherData.description.short ]
             ]
-        , div [ style "color" "#475B63", class "text-5xl text-center" ] [ text (toString weatherData.temperatures.now), text (" " ++ String.fromChar (Char.fromCode 176) ++ "F") ]
-        , div [ class "text-center text-xl", style "color" "#475B63" ] [ text weatherData.description.long ]
-        , text (toString weatherData)
+        , div [ style "color" "#475B63", class "text-5xl text-center my-5" ] [ text (toString weatherData.temperatures.now), text (" " ++ String.fromChar (Char.fromCode 176) ++ "F") ]
+        , div [ class "flex flex-row items-center justify-center" ]
+            [ icon "wind"
+            , span [ class "text-4xl ml-10 my-5", style "color" "#475B63" ] [ text windMessage ]
+            ]
+        , div [ class "flex flex-row items-center justify-center my-5" ]
+            [ icon "thermometer"
+            , iconSmall "chevron-up"
+            , span [ class "text-xl", style "color" "#475B63" ] [ text (toString weatherData.temperatures.max), text (" " ++ String.fromChar (Char.fromCode 176) ++ "F") ]
+            , iconSmall "chevron-down"
+            , span [ class "text-xl", style "color" "#475B63" ] [ text (toString weatherData.temperatures.min), text (" " ++ String.fromChar (Char.fromCode 176) ++ "F") ]
+            ]
+        , div [ class "flex flex-row items-center justify-center" ]
+            [ icon "target"
+            , span [ class "text-4xl ml-10", style "color" "#475B63" ] [ text (toString weatherData.other.pressure) ]
+            ]
+        , div [ class "flex flex-row items-center justify-center my-5" ]
+            [ icon "droplet"
+            , span [ class "text-4xl ml-10", style "color" "#475B63" ] [ text (toString weatherData.other.humidity ++ "%") ]
+            ]
+        , div [ class "text-center text-xl my-10", style "color" "#475B63" ] [ text ("so basically..." ++ weatherData.description.long) ]
         ]
 
 
@@ -263,7 +299,16 @@ icon iconName =
         iconPath =
             "./assets/svg/" ++ iconName ++ ".svg"
     in
-    img [ style "color" "#475B63", style "height" "100px", style "width" "100px", src iconPath ] []
+    img [ style "height" "100px", style "width" "100px", src iconPath ] []
+
+
+iconSmall : String -> Html Msg
+iconSmall iconSmallName =
+    let
+        iconPath =
+            "./assets/svg/" ++ iconSmallName ++ ".svg"
+    in
+    img [ style "height" "30px", style "width" "30px", class "mx-10", src iconPath ] []
 
 
 iconCenter : String -> Html Msg

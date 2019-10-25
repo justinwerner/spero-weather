@@ -9981,18 +9981,54 @@ var author$project$Home$icon = function (iconName) {
 		elm$html$Html$img,
 		_List_fromArray(
 			[
-				A2(elm$html$Html$Attributes$style, 'color', '#475B63'),
 				A2(elm$html$Html$Attributes$style, 'height', '100px'),
 				A2(elm$html$Html$Attributes$style, 'width', '100px'),
 				elm$html$Html$Attributes$src(iconPath)
 			]),
 		_List_Nil);
 };
+var author$project$Home$iconSmall = function (iconSmallName) {
+	var iconPath = './assets/svg/' + (iconSmallName + '.svg');
+	return A2(
+		elm$html$Html$img,
+		_List_fromArray(
+			[
+				A2(elm$html$Html$Attributes$style, 'height', '30px'),
+				A2(elm$html$Html$Attributes$style, 'width', '30px'),
+				elm$html$Html$Attributes$class('mx-10'),
+				elm$html$Html$Attributes$src(iconPath)
+			]),
+		_List_Nil);
+};
+var elm$core$Basics$round = _Basics_round;
 var elm$core$Char$fromCode = _Char_fromCode;
+var elm$core$List$member = F2(
+	function (x, xs) {
+		return A2(
+			elm$core$List$any,
+			function (a) {
+				return _Utils_eq(a, x);
+			},
+			xs);
+	});
 var elm$html$Html$section = _VirtualDom_node('section');
 var elm$html$Html$span = _VirtualDom_node('span');
 var author$project$Home$weather = function (weatherData) {
-	var newIcon = 'sun';
+	var windMessage = (weatherData.wind.speed < 10) ? 'meh' : (A2(
+		elm$core$List$member,
+		elm$core$Basics$round(weatherData.wind.speed),
+		A2(elm$core$List$range, 10, 30)) ? 'interesting' : (A2(
+		elm$core$List$member,
+		elm$core$Basics$round(weatherData.wind.speed),
+		A2(elm$core$List$range, 30, 50)) ? 'wow!' : 'Run For Cover!'));
+	var newIcon = function () {
+		var _n0 = weatherData.description._short;
+		if (_n0 === 'Clouds') {
+			return 'cloud';
+		} else {
+			return 'sun';
+		}
+	}();
 	return A2(
 		elm$html$Html$section,
 		_List_Nil,
@@ -10024,7 +10060,7 @@ var author$project$Home$weather = function (weatherData) {
 				_List_fromArray(
 					[
 						A2(elm$html$Html$Attributes$style, 'color', '#475B63'),
-						elm$html$Html$Attributes$class('text-5xl text-center')
+						elm$html$Html$Attributes$class('text-5xl text-center my-5')
 					]),
 				_List_fromArray(
 					[
@@ -10038,15 +10074,120 @@ var author$project$Home$weather = function (weatherData) {
 				elm$html$Html$div,
 				_List_fromArray(
 					[
-						elm$html$Html$Attributes$class('text-center text-xl'),
+						elm$html$Html$Attributes$class('flex flex-row items-center justify-center')
+					]),
+				_List_fromArray(
+					[
+						author$project$Home$icon('wind'),
+						A2(
+						elm$html$Html$span,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class('text-4xl ml-10 my-5'),
+								A2(elm$html$Html$Attributes$style, 'color', '#475B63')
+							]),
+						_List_fromArray(
+							[
+								elm$html$Html$text(windMessage)
+							]))
+					])),
+				A2(
+				elm$html$Html$div,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$class('flex flex-row items-center justify-center my-5')
+					]),
+				_List_fromArray(
+					[
+						author$project$Home$icon('thermometer'),
+						author$project$Home$iconSmall('chevron-up'),
+						A2(
+						elm$html$Html$span,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class('text-xl'),
+								A2(elm$html$Html$Attributes$style, 'color', '#475B63')
+							]),
+						_List_fromArray(
+							[
+								elm$html$Html$text(
+								elm$core$Debug$toString(weatherData.temperatures.max)),
+								elm$html$Html$text(
+								' ' + (elm$core$String$fromChar(
+									elm$core$Char$fromCode(176)) + 'F'))
+							])),
+						author$project$Home$iconSmall('chevron-down'),
+						A2(
+						elm$html$Html$span,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class('text-xl'),
+								A2(elm$html$Html$Attributes$style, 'color', '#475B63')
+							]),
+						_List_fromArray(
+							[
+								elm$html$Html$text(
+								elm$core$Debug$toString(weatherData.temperatures.min)),
+								elm$html$Html$text(
+								' ' + (elm$core$String$fromChar(
+									elm$core$Char$fromCode(176)) + 'F'))
+							]))
+					])),
+				A2(
+				elm$html$Html$div,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$class('flex flex-row items-center justify-center')
+					]),
+				_List_fromArray(
+					[
+						author$project$Home$icon('target'),
+						A2(
+						elm$html$Html$span,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class('text-4xl ml-10'),
+								A2(elm$html$Html$Attributes$style, 'color', '#475B63')
+							]),
+						_List_fromArray(
+							[
+								elm$html$Html$text(
+								elm$core$Debug$toString(weatherData.other.pressure))
+							]))
+					])),
+				A2(
+				elm$html$Html$div,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$class('flex flex-row items-center justify-center my-5')
+					]),
+				_List_fromArray(
+					[
+						author$project$Home$icon('droplet'),
+						A2(
+						elm$html$Html$span,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class('text-4xl ml-10'),
+								A2(elm$html$Html$Attributes$style, 'color', '#475B63')
+							]),
+						_List_fromArray(
+							[
+								elm$html$Html$text(
+								elm$core$Debug$toString(weatherData.other.humidity) + '%')
+							]))
+					])),
+				A2(
+				elm$html$Html$div,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$class('text-center text-xl my-10'),
 						A2(elm$html$Html$Attributes$style, 'color', '#475B63')
 					]),
 				_List_fromArray(
 					[
-						elm$html$Html$text(weatherData.description._long)
-					])),
-				elm$html$Html$text(
-				elm$core$Debug$toString(weatherData))
+						elm$html$Html$text('so basically...' + weatherData.description._long)
+					]))
 			]));
 };
 var author$project$Home$view = function (model) {
