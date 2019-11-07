@@ -6122,6 +6122,8 @@ var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 	}
 };
 var elm$html$Html$div = _VirtualDom_node('div');
+var elm$html$Html$h1 = _VirtualDom_node('h1');
+var elm$html$Html$img = _VirtualDom_node('img');
 var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
 var elm$json$Json$Encode$string = _Json_wrap;
@@ -6133,8 +6135,48 @@ var elm$html$Html$Attributes$stringProperty = F2(
 			elm$json$Json$Encode$string(string));
 	});
 var elm$html$Html$Attributes$class = elm$html$Html$Attributes$stringProperty('className');
+var elm$html$Html$Attributes$src = function (url) {
+	return A2(
+		elm$html$Html$Attributes$stringProperty,
+		'src',
+		_VirtualDom_noJavaScriptOrHtmlUri(url));
+};
 var elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
 var elm$html$Html$Attributes$style = elm$virtual_dom$VirtualDom$style;
+var author$project$Home$detailsPage = F3(
+	function (innerHtml, image, opacity) {
+		return A2(
+			elm$html$Html$div,
+			_List_fromArray(
+				[
+					elm$html$Html$Attributes$class('container mx-auto flex flex-col justify-center items-center')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					elm$html$Html$h1,
+					_List_fromArray(
+						[
+							A2(elm$html$Html$Attributes$style, 'font-family', 'Vibes, cursive'),
+							A2(elm$html$Html$Attributes$style, 'color', '#475B63'),
+							elm$html$Html$Attributes$class('text-4xl my-10')
+						]),
+					_List_fromArray(
+						[
+							elm$html$Html$text('Spero Weather')
+						])),
+					innerHtml,
+					A2(
+					elm$html$Html$img,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$src(image),
+							elm$html$Html$Attributes$class('w-1/3 h-1/3 mt-20'),
+							A2(elm$html$Html$Attributes$style, 'opacity', opacity)
+						]),
+					_List_Nil)
+				]));
+	});
 var author$project$Home$failure = function (err) {
 	return A2(
 		elm$html$Html$div,
@@ -9933,15 +9975,7 @@ var author$project$Home$loading = A2(
 				{color: '#E09F3E'}),
 			perzanko$elm_loading$Loading$On)
 		]));
-var elm$html$Html$h1 = _VirtualDom_node('h1');
-var elm$html$Html$img = _VirtualDom_node('img');
-var elm$html$Html$Attributes$src = function (url) {
-	return A2(
-		elm$html$Html$Attributes$stringProperty,
-		'src',
-		_VirtualDom_noJavaScriptOrHtmlUri(url));
-};
-var author$project$Home$page = F3(
+var author$project$Home$searchPage = F3(
 	function (innerHtml, image, opacity) {
 		return A2(
 			elm$html$Html$div,
@@ -10195,23 +10229,23 @@ var author$project$Home$view = function (model) {
 		case 'Landing':
 			var search = model.a;
 			return A3(
-				author$project$Home$page,
+				author$project$Home$searchPage,
 				author$project$Home$inputSection(search),
 				'./assets/svg/undraw_location_search_bqps.svg',
 				'0.65');
 		case 'Loading':
-			return A3(author$project$Home$page, author$project$Home$loading, './assets/svg/undraw_unicorn_dp2f.svg', '1.0');
+			return A3(author$project$Home$detailsPage, author$project$Home$loading, './assets/svg/undraw_unicorn_dp2f.svg', '1.0');
 		case 'Success':
 			var weatherData = model.a;
 			return A3(
-				author$project$Home$page,
+				author$project$Home$detailsPage,
 				author$project$Home$weather(weatherData),
 				'./assets/svg/undraw_nature_fun_n9lv.svg',
 				'1.0');
 		default:
 			var err = model.a;
 			return A3(
-				author$project$Home$page,
+				author$project$Home$detailsPage,
 				author$project$Home$failure(err),
 				'./assets/svg/undraw_server_down_s4lk.svg',
 				'1.0');

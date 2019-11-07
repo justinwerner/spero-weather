@@ -206,21 +206,30 @@ view : Model -> Html Msg
 view model =
     case model of
         Landing search ->
-            page (inputSection search) "./assets/svg/undraw_location_search_bqps.svg" "0.65"
+            searchPage (inputSection search) "./assets/svg/undraw_location_search_bqps.svg" "0.65"
 
         Loading ->
-            page loading "./assets/svg/undraw_unicorn_dp2f.svg" "1.0"
+            detailsPage loading "./assets/svg/undraw_unicorn_dp2f.svg" "1.0"
 
         Success weatherData ->
-            page (weather weatherData) "./assets/svg/undraw_nature_fun_n9lv.svg" "1.0"
+            detailsPage (weather weatherData) "./assets/svg/undraw_nature_fun_n9lv.svg" "1.0"
 
         Failure err ->
-            page (failure err) "./assets/svg/undraw_server_down_s4lk.svg" "1.0"
+            detailsPage (failure err) "./assets/svg/undraw_server_down_s4lk.svg" "1.0"
 
 
-page : Html Msg -> String -> String -> Html Msg
-page innerHtml image opacity =
+searchPage : Html Msg -> String -> String -> Html Msg
+searchPage innerHtml image opacity =
     div [ class "container mx-auto flex flex-col h-screen justify-center items-center" ]
+        [ h1 [ style "font-family" "Vibes, cursive", style "color" "#475B63", class "text-4xl my-10" ] [ text "Spero Weather" ]
+        , innerHtml
+        , img [ src image, class "w-1/3 h-1/3 mt-20", style "opacity" opacity ] []
+        ]
+
+
+detailsPage : Html Msg -> String -> String -> Html Msg
+detailsPage innerHtml image opacity =
+    div [ class "container mx-auto flex flex-col justify-center items-center" ]
         [ h1 [ style "font-family" "Vibes, cursive", style "color" "#475B63", class "text-4xl my-10" ] [ text "Spero Weather" ]
         , innerHtml
         , img [ src image, class "w-1/3 h-1/3 mt-20", style "opacity" opacity ] []
