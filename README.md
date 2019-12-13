@@ -2,7 +2,7 @@
 
 ## A Basic Weather Application Built With Elm
 
-This is a fun weather application built with Elm. It is very basic and as of yet the functionality has a lot to be desired. It will be worked on as time allows and will thus become better over time. Any help is appreciated.
+This is a fun weather application built with Elm. It is very basic, and as of yet the functionality has a lot to be desired. It will be worked on as time allows and will thus become better over time. Any help is appreciated.
 
 ## Requirements
 
