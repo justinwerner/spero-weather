@@ -1,7 +1,6 @@
 module Home exposing (main)
 
 import Browser
-import Browser.Events
 import Debug exposing (toString)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -116,7 +115,7 @@ update msg model =
         RetrieveWeather city ->
             ( Loading
             , Http.get
-                { url = "https://api.openweathermap.org/data/2.5/find?q=" ++ city ++ "&units=imperial&type=accurate&APPID=<You_APP_ID>"
+                { url = "https://api.openweathermap.org/data/2.5/find?q=" ++ city ++ "&units=imperial&type=accurate&APPID=7ab827fff3461690618eccf4312e5268"
                 , expect = Http.expectJson GotWeather weatherDecoder
                 }
             )
@@ -212,7 +211,7 @@ view model =
             detailsPage loading "./assets/svg/undraw_unicorn_dp2f.svg" "1.0"
 
         Success weatherData ->
-            detailsPage (weather weatherData) "./assets/svg/undraw_nature_fun_n9lv.svg" "1.0"
+            weatherPage (weather weatherData)
 
         Failure err ->
             detailsPage (failure err) "./assets/svg/undraw_server_down_s4lk.svg" "1.0"
@@ -233,6 +232,14 @@ detailsPage innerHtml image opacity =
         [ h1 [ style "font-family" "Vibes, cursive", style "color" "#475B63", class "text-4xl my-10" ] [ text "Spero Weather" ]
         , innerHtml
         , img [ src image, class "w-1/3 h-1/3 mt-20", style "opacity" opacity ] []
+        ]
+
+
+weatherPage : Html Msg -> Html Msg
+weatherPage innerHtml =
+    div [ class "container mx-auto flex flex-col justify-center items-center" ]
+        [ h1 [ style "font-family" "Vibes, cursive", style "color" "#475B63", class "text-4xl my-10" ] [ text "Spero Weather" ]
+        , innerHtml
         ]
 
 
@@ -261,44 +268,48 @@ weather weatherData =
 
         windMessage =
             if weatherData.wind.speed < 10 then
-                "meh"
+                "The wind is meh."
 
             else if List.member (round weatherData.wind.speed) (List.range 10 30) then
-                "interesting"
+                "The wind is interesting."
 
             else if List.member (round weatherData.wind.speed) (List.range 30 50) then
-                "wow!"
+                "The wind is strong!"
 
             else
-                "Run For Cover!"
+                "The wind is trying to blow your house away!"
     in
     section
         []
-        [ div [ class "flex flex-row items-center justify-center" ]
-            [ icon newIcon
-            , span [ class "text-4xl ml-10", style "color" "#475B63" ] [ text weatherData.description.short ]
+        [ div [ class "max-w-sm rounded overflow-hidden shadow-lg" ]
+            [ img [ class "w-full", src "./assets/svg/undraw_nature_fun_n9lv.svg" ]
+                []
+            , div [ class "px-6 py-4" ]
+                [ div [ class "font-bold text-xl flex flex-row items-center justify-center mb-2" ]
+                    [ icon newIcon
+                    , span [ style "color" "#475B63", class "text-5xl ml-5" ] [ text (toString weatherData.temperatures.now), text (" " ++ String.fromChar (Char.fromCode 176) ++ "F") ]
+                    ]
+                , div [ class "flex flex-row items-center justify-center my-5" ]
+                    [ iconSmall "chevron-up"
+                    , span [ class "text-xl", style "color" "#475B63" ] [ text (toString weatherData.temperatures.max), text (" " ++ String.fromChar (Char.fromCode 176) ++ "F") ]
+                    , iconSmall "chevron-down"
+                    , span [ class "text-xl", style "color" "#475B63" ] [ text (toString weatherData.temperatures.min), text (" " ++ String.fromChar (Char.fromCode 176) ++ "F") ]
+                    ]
+                , p [ class "text-gray-700 text-base" ]
+                    [ shortMessage windMessage
+                    , shortMessage ("Pressure is at " ++ toString weatherData.other.pressure ++ ".")
+                    , shortMessage ("Humidity is at " ++ toString weatherData.other.humidity ++ "%.")
+                    ]
+                , div [ class "text-center text-xl my-5", style "color" "#475B63" ] [ text ("so basically..." ++ weatherData.description.long) ]
+                ]
             ]
-        , div [ style "color" "#475B63", class "text-5xl text-center my-5" ] [ text (toString weatherData.temperatures.now), text (" " ++ String.fromChar (Char.fromCode 176) ++ "F") ]
-        , div [ class "flex flex-row items-center justify-center" ]
-            [ icon "wind"
-            , span [ class "text-4xl ml-10 my-5", style "color" "#475B63" ] [ text windMessage ]
-            ]
-        , div [ class "flex flex-row items-center justify-center my-5" ]
-            [ icon "thermometer"
-            , iconSmall "chevron-up"
-            , span [ class "text-xl", style "color" "#475B63" ] [ text (toString weatherData.temperatures.max), text (" " ++ String.fromChar (Char.fromCode 176) ++ "F") ]
-            , iconSmall "chevron-down"
-            , span [ class "text-xl", style "color" "#475B63" ] [ text (toString weatherData.temperatures.min), text (" " ++ String.fromChar (Char.fromCode 176) ++ "F") ]
-            ]
-        , div [ class "flex flex-row items-center justify-center" ]
-            [ icon "target"
-            , span [ class "text-4xl ml-10", style "color" "#475B63" ] [ text (toString weatherData.other.pressure) ]
-            ]
-        , div [ class "flex flex-row items-center justify-center my-5" ]
-            [ icon "droplet"
-            , span [ class "text-4xl ml-10", style "color" "#475B63" ] [ text (toString weatherData.other.humidity ++ "%") ]
-            ]
-        , div [ class "text-center text-xl my-10", style "color" "#475B63" ] [ text ("so basically..." ++ weatherData.description.long) ]
+        ]
+
+
+shortMessage : String -> Html Msg
+shortMessage message =
+    div [ class "flex flex-row items-center justify-center" ]
+        [ p [ style "color" "#475B63" ] [ text message ]
         ]
 
 
@@ -317,16 +328,7 @@ iconSmall iconSmallName =
         iconPath =
             "./assets/svg/" ++ iconSmallName ++ ".svg"
     in
-    img [ style "height" "30px", style "width" "30px", class "mx-10", src iconPath ] []
-
-
-iconCenter : String -> Html Msg
-iconCenter iconCenterName =
-    let
-        iconPath =
-            "./assets/svg/" ++ iconCenterName ++ ".svg"
-    in
-    img [ style "color" "#475B63", style "height" "100px", style "width" "100px", class "mx-auto", src iconPath ] []
+    img [ style "height" "30px", style "width" "30px", class "mx-5", src iconPath ] []
 
 
 loading : Html Msg
