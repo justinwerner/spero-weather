@@ -6085,7 +6085,7 @@ var author$project$Home$update = F2(
 					elm$http$Http$get(
 						{
 							expect: A2(elm$http$Http$expectJson, author$project$Home$GotWeather, author$project$Home$weatherDecoder),
-							url: 'https://api.openweathermap.org/data/2.5/find?q=' + (city + '&units=imperial&type=accurate&APPID=7ab827fff3461690618eccf4312e5268')
+							url: 'https://api.openweathermap.org/data/2.5/find?q=' + (city + '&units=imperial&type=accurate&APPID=<YOUR_APP_ID_HERE>')
 						}));
 			case 'GotWeather':
 				var result = msg.a;
